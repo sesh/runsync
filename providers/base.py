@@ -12,13 +12,13 @@ class BaseProvider:
 class Activity:
 
     def __str__(self):
-        return self.name
+        return '{} {}km in {}'.format(self.name, self.distance / 1000, self.duration)
 
     def __init__(self, *, name, start, distance, duration, activity_type='running',
                  distance_values=[], longitude_values=[], latitude_values=[], elevation_values=[], clock_values=[]):
         self.name = name
         self.start = start
-        self.distance = distance
+        self.distance = distance  # in meters
         self.duration = duration
         self.activity_type = activity_type
         self.distance_values = distance_values

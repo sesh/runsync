@@ -15,7 +15,7 @@ export SMASHRUN_ACCESS_TOKEN='<smashrun-token>'
 python runsync.py
 ```
 
-(only tested with Python 3 - and tested with 3.6)
+(only tested with Python 3.6)
 
   [smashrun]: https://smashrun.com
   [strava]: https://strava.com
