@@ -9,7 +9,7 @@ STRAVA_ACCESS_TOKEN = os.environ.get('STRAVA_ACCESS_TOKEN')
 
 class StravaProvider(BaseProvider):
 
-    def get_activities(self, limit=1):
+    def get_activities(self, limit=10, skip_ids=[]):
         activities = []
         response = requests.get('https://www.strava.com/api/v3/athlete/activities', headers={
             'Authorization': 'Bearer {}'.format(STRAVA_ACCESS_TOKEN)
@@ -17,7 +17,11 @@ class StravaProvider(BaseProvider):
 
         for activity in response.json()[:limit]:
             if activity['type'].lower() != 'run':
-                print('Skipping non-running workout.')
+                print('Skipping non-running workout. {} ({})'.format(activity['id'], activity['type'].lower()))
+                continue
+
+            if activity['id'] in skip_ids:
+                print('Skipping already synced workout. {}'.format(activity['id']))
                 continue
 
             activity_streams = requests.get('https://www.strava.com/api/v3/activities/{}/streams/time,distance,altitude,latlng'.format(
@@ -27,6 +31,7 @@ class StravaProvider(BaseProvider):
             }).json()
 
             activity_obj = Activity(
+                source_id=activity['id'],
                 name=activity['name'],
                 start=activity['start_date_local'],
                 distance=activity['distance'] / 1000,

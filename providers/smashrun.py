@@ -9,6 +9,17 @@ SMASHRUN_ACCESS_TOKEN = os.environ.get('SMASHRUN_ACCESS_TOKEN')
 
 class SmashrunProvider(BaseProvider):
 
+    def get_activity_external_ids(self):
+        activities = []
+        response = requests.get('https://api.smashrun.com/v1/my/activities', headers={
+            'Authorization': 'Bearer {}'.format(SMASHRUN_ACCESS_TOKEN)
+        })
+
+        for activity in response.json():
+            activities.append(activity['externalId'])
+
+        return activities
+
     def get_activities(self, limit=10):
         activities = []
         response = requests.get('https://api.smashrun.com/v1/my/activities', headers={
@@ -28,7 +39,9 @@ class SmashrunProvider(BaseProvider):
                 name=activity['notes'],
                 start=activity['startDateTimeLocal'],
                 distance=activity['distance'] * 1000,
-                duration=activity['duration']
+                duration=activity['duration'],
+                external_id=activity['externalId'],
+                source_id=activity['activityId'],
             )
 
             for stream in ['altitude', 'clock', 'distance', 'longitude', 'latitude']:
@@ -44,6 +57,7 @@ class SmashrunProvider(BaseProvider):
             'distance': activity.distance,
             'duration': activity.duration,
             'activityType': activity.activity_type,
+            'externalId': activity.external_id if activity.external_id else '',
 
             'recordingKeys': [
                 k for k in ['clock', 'distance', 'longitude', 'latitude', 'elevation']
@@ -54,7 +68,6 @@ class SmashrunProvider(BaseProvider):
                 for k in ['clock', 'distance', 'longitude', 'latitude', 'elevation']
                 if getattr(activity, '{}_values'.format(k))
             ],
-
         }
 
         response = requests.post('https://api.smashrun.com/v1/my/activities/', json=data, headers={
