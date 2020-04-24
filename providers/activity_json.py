@@ -34,11 +34,11 @@ def haversine(point1, point2, miles=False):
 class Activity:
 
     def __str__(self):
-        return '{} {}km in {}'.format(self.name, self.distance / 1000, self.duration)
+        return f"{self.name} {self.distance}km in {self.duration} ({self.provider} - {self.source_id})"
 
     def __init__(self, *, name, source_id, start, distance, duration, activity_type='running',
                  distance_values=[], longitude_values=[], latitude_values=[], elevation_values=[], clock_values=[],
-                 heart_rate_values=[], external_id=None, **kwargs):
+                 heart_rate_values=[], external_id=None, provider=None, **kwargs):
         self.name = name
         self.source_id = source_id
         self.external_id = external_id  # id on another service
@@ -52,6 +52,7 @@ class Activity:
         self.elevation_values = elevation_values  # in m
         self.clock_values = clock_values  # in s
         self.heart_rate_values = heart_rate_values
+        self.provider = provider
 
     def json(self):
         data = {
@@ -61,7 +62,8 @@ class Activity:
                 'start': self.start,
                 'distance': self.distance,
                 'duration': self.duration,
-                'activity_type': self.activity_type
+                'activity_type': self.activity_type,
+                'provider': self.provider,
             },
             'data': {
                 'distance': self.distance_values,
@@ -75,7 +77,7 @@ class Activity:
         return json.dumps(data, indent=2)
 
     @classmethod
-    def load(self, j):
+    def load(cls, j):
         """
         Accepts a JSON string and returns an Activity object
         """
@@ -98,3 +100,21 @@ class Activity:
                 distance += haversine(point, prev)
             prev = point
         return distance
+
+    def splits(self):
+        splits = {}
+        next_split = 1.0
+        split_start = 0
+
+        for i, distance in enumerate(self.distance_values):
+            if distance >= next_split:
+                splits[str(next_split)] =  self.clock_values[i] - split_start
+
+                if distance == next_split:
+                    split_start = self.clock_values[i]
+                else:
+                    split_start = self.clock_values[i-1]
+
+                next_split += 1
+
+        return splits

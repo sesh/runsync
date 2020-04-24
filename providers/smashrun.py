@@ -9,10 +9,15 @@ SMASHRUN_ACCESS_TOKEN = os.environ.get('SMASHRUN_ACCESS_TOKEN')
 
 class SmashrunProvider(BaseProvider):
 
+    def __init__(self, token=None):
+        if not token:
+            raise Exception("Smashrun token required, created one with the API Explorer: https://api.smashrun.com/explorer")
+        self.SMASHRUN_ACCESS_TOKEN = token
+
     def get_activity_external_ids(self):
         activities = []
         response = requests.get('https://api.smashrun.com/v1/my/activities', headers={
-            'Authorization': 'Bearer {}'.format(SMASHRUN_ACCESS_TOKEN)
+            'Authorization': 'Bearer {}'.format(self.SMASHRUN_ACCESS_TOKEN)
         })
 
         for activity in response.json():
@@ -23,7 +28,7 @@ class SmashrunProvider(BaseProvider):
     def get_activities(self, limit=10):
         activities = []
         response = requests.get('https://api.smashrun.com/v1/my/activities', headers={
-            'Authorization': 'Bearer {}'.format(SMASHRUN_ACCESS_TOKEN)
+            'Authorization': 'Bearer {}'.format(self.SMASHRUN_ACCESS_TOKEN)
         })
 
         for activity in response.json()[:limit]:
@@ -32,7 +37,7 @@ class SmashrunProvider(BaseProvider):
                 continue
 
             activity_detail = requests.get('https://api.smashrun.com/v1/my/activities/' + str(activity['activityId']), headers={
-                'Authorization': 'Bearer {}'.format(SMASHRUN_ACCESS_TOKEN)
+                'Authorization': 'Bearer {}'.format(self.SMASHRUN_ACCESS_TOKEN)
             }).json()
 
             activity_obj = Activity(
@@ -71,7 +76,7 @@ class SmashrunProvider(BaseProvider):
         }
 
         response = requests.post('https://api.smashrun.com/v1/my/activities/', json=data, headers={
-            'Authorization': 'Bearer {}'.format(SMASHRUN_ACCESS_TOKEN)
+            'Authorization': 'Bearer {}'.format(self.SMASHRUN_ACCESS_TOKEN)
         }).json()
 
         if 'validations' in response:

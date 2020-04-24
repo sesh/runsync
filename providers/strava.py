@@ -3,16 +3,30 @@ import requests
 
 from .base import Activity, BaseProvider
 
+from stravalib.client import Client
 
-STRAVA_ACCESS_TOKEN = os.environ.get('STRAVA_ACCESS_TOKEN')
-
+STRAVA_CLIENT_SECRET = ''
+STRAVA_APP_ID = ''
 
 class StravaProvider(BaseProvider):
 
-    def get_activities(self, limit=10, skip_ids=[]):
+    provider = 'strava'
+
+    def __init__(self, token):
+        if not token:
+            client = Client()
+            url = client.authorization_url(client_id=STRAVA_APP_ID, redirect_uri='http://localhost:8000/')
+            code = input(f"Open {url}, copy code once redirected: ")
+            token_response = client.exchange_code_for_token(client_id=STRAVA_APP_ID, client_secret=STRAVA_CLIENT_SECRET, code=code)
+            self.STRAVA_ACCESS_TOKEN = token_response['access_token']
+            print(self.STRAVA_ACCESS_TOKEN)
+        else:
+            self.STRAVA_ACCESS_TOKEN = token
+
+    def get_activities(self, skip_ids=[], limit=100):
         activities = []
-        response = requests.get('https://www.strava.com/api/v3/athlete/activities', headers={
-            'Authorization': 'Bearer {}'.format(STRAVA_ACCESS_TOKEN)
+        response = requests.get('https://www.strava.com/api/v3/athlete/activities?per_page=100', headers={
+            'Authorization': 'Bearer {}'.format(self.STRAVA_ACCESS_TOKEN)
         })
 
         for activity in response.json()[:limit]:
@@ -27,7 +41,7 @@ class StravaProvider(BaseProvider):
             activity_streams = requests.get('https://www.strava.com/api/v3/activities/{}/streams/time,distance,altitude,latlng'.format(
                 activity['id']
             ), headers={
-                'Authorization': 'Bearer {}'.format(STRAVA_ACCESS_TOKEN)
+                'Authorization': 'Bearer {}'.format(self.STRAVA_ACCESS_TOKEN)
             }).json()
 
             activity_obj = Activity(
@@ -35,7 +49,8 @@ class StravaProvider(BaseProvider):
                 name=activity['name'],
                 start=activity['start_date_local'],
                 distance=activity['distance'] / 1000,
-                duration=activity['elapsed_time']
+                duration=activity['elapsed_time'],
+                provider='strava'
             )
 
             for stream in activity_streams:
