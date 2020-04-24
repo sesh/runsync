@@ -2,6 +2,8 @@ from providers.strava import StravaProvider
 from providers.filesystem import FileSystemProvider
 from providers.smashrun import SmashrunProvider
 
+import os
+
 
 def format_mins_seconds(d):
     minutes, seconds = divmod(d, 60)
@@ -44,7 +46,7 @@ def print_split(activities):
 if __name__ == '__main__':
     sp = StravaProvider(token=None)
     fs = FileSystemProvider(prefix='./runs/')
-    sr = SmashrunProvider(token=None)
+    sr = SmashrunProvider(token=os.environ.get('SMASHRUN_TOKEN'))
 
     activities = fs.get_activities()
 

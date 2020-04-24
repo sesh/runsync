@@ -5,8 +5,8 @@ from .base import Activity, BaseProvider
 
 from stravalib.client import Client
 
-STRAVA_CLIENT_SECRET = ''
-STRAVA_APP_ID = ''
+STRAVA_CLIENT_SECRET = os.environ.get('STRAVA_CLIENT_SECRET')
+STRAVA_APP_ID = os.environ.get('STRAVA_APP_ID')
 
 class StravaProvider(BaseProvider):
 
@@ -19,7 +19,6 @@ class StravaProvider(BaseProvider):
             code = input(f"Open {url}, copy code once redirected: ")
             token_response = client.exchange_code_for_token(client_id=STRAVA_APP_ID, client_secret=STRAVA_CLIENT_SECRET, code=code)
             self.STRAVA_ACCESS_TOKEN = token_response['access_token']
-            print(self.STRAVA_ACCESS_TOKEN)
         else:
             self.STRAVA_ACCESS_TOKEN = token
 
