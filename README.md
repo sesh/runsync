@@ -1,4 +1,4 @@
-`runsync` is a Python tool for suncing runs (and other activities) between services.
+`runsync` is a Python tool for syncing runs (and other activities) between services.
 
 It currently supports exporting runs from [Strava][strava] to [Smashrun][smashrun].
 I definitely intend on incorporating other services.
